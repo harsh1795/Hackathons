@@ -1,13 +1,17 @@
 ## setting directory
 setwd("C:/Users/Harshit/Desktop/Analytics Competitions/AMEX")
 
+#-----------------------------------------------------------------------------------------
+# Starting H2O cluster
 library(h2o)
-## starting cluster
 h2o.init(
   nthreads=-1,            ## -1: use all available threads
   max_mem_size = "4G")
 
 h2o.removeAll()
+
+#-----------------------------------------------------------------------------------------
+# Importing Files
 df1 <- h2o.importFile(path = "tra1.csv")
 df2 <- h2o.importFile(path = "tra2.csv")
 #df3 <- h2o.importFile(path = "trainsplit1.csv")
@@ -16,6 +20,9 @@ lead1 = h2o.importFile(path = "vali1.csv")
 lead2 = h2o.importFile(path = "vali2.csv")
 #lead3 = h2o.importFile(path = "validsplit1.csv")
 #lead4 = h2o.importFile(path = "test22.csv")
+
+#-----------------------------------------------------------------------------------------
+# Data Preprocessing
 df1$C1=NULL
 df2$C1=NULL
 df3$C1 = NULL
@@ -50,29 +57,30 @@ new_features_test= c('Cit_pref1','Cit_pref2','city_change','ZIP_pref1','ZIP_pref
 gg = df[,new_features_test]
 
 ###############################################################################
+# splitting training,testing,validation datasets.
+
 splits <- h2o.splitFrame(
   df2,           ##  splitting the H2O frame we read above
   c(0.8),   ##  create splits of 60% and 20%; 
   ##  H2O will create one more split of 1-(sum of these parameters)
   ##  so we will get 0.6 / 0.2 / 1 - (0.6+0.2) = 0.6/0.2/0.2
   seed=1234) 
-
 train <- h2o.assign(splits[[1]], "train.hex") 
 valid <- h2o.assign(splits[[2]], "valid.hex")   ## R valid, H2O valid.hex
 test <- h2o.assign(splits[[2]], "test.hex")
-train[1:5,]
 
 
 
-
+#------------------------------------------------------------------------------------------------------------
+# Getting predictions
 finalRf_predictions<-h2o.predict(
   object = m1
   ,newdata = lead2)
 y = as.data.frame(finalRf_predictions$predict)
 write.csv(x,"lead11.csv")
-mean(finalRf_predictions$predict==test$actual_vote) ## test set accuracy
+mean(finalRf_predictions$predict==test$actual_vote) ##------------ test set accuracy
 
-dat1 = h2o.cbind(lead1$citizen_id,finalRf_predictions$predict)
+dat1 = h2o.cbind(lead1$citizen_id,finalRf_predictions$predict)  ##------combining datasets with predictions
 dat2 = h2o.cbind(lead2$citizen_id,finalRf_predictions$predict)
 dat3 = h2o.cbind(lead3$citizen_id,finalRf_predictions$predict)
 dat4 = h2o.cbind(lead4$citizen_id,finalRf_predictions$predict)
@@ -82,41 +90,41 @@ dat = h2o.rbind(dat,dat3)
 dat = h2o.rbind(dat,dat4)
 
 dat = as.data.frame(dat)
-write.csv(dat,"fina.csv")
+write.csv(dat,"fina.csv")  ##---------Exporting result into csv format
 
 dat2 = h2o.cbind(dat2,lead2$party_voted_past)
 data2 = as.data.frame(dat2)
 View(data2)
 length(which(data2$predict==data2$Cit_pref1))
 #    1     #####################################################################################
-rf1 <- h2o.randomForest(         ## h2o.randomForest function
-  training_frame = df2,        ## the H2O frame for training
+rf1 <- h2o.randomForest(          ## h2o.randomForest function
+  training_frame = df2,           ## the H2O frame for training
   #validation_frame = valid,      ## the H2O frame for validation (not required)
-  x=c(2:33,37:52),                        ## the predictor columns, by column index
-  y=36,                          ## the target index (what we are predicting)
-  model_id = "rf_v1",            ## name the model in H2O
+  x=c(2:33,37:52),                ## the predictor columns, by column index
+  y=36,                           ## the target index (what we are predicting)
+  model_id = "rf_v1",             ## name the model in H2O
   ntrees = 250,
   mtries = 7,
   nbins = 100,                    ## use a maximum of 200 trees to create the
   #stopping_rounds = 3,           ## Stop fitting new trees when the 2-tree
   score_each_iteration = T)
 #    2    #################################################################################
-rf2 <- h2o.randomForest(        ##
-  training_frame = train,       ##
-  #validation_frame = valid,     ##
-  x=c(1:32,34:68),                       ##
-  y=33,                         ##
-  model_id = "rf_covType2",     ## 
-  ntrees = 500,                 ##
-  max_depth = 30,               ## Increase depth, from 20
+rf2 <- h2o.randomForest(          ##
+  training_frame = train,         ##
+  #validation_frame = valid,      ##
+  x=c(1:32,34:68),                ##
+  y=33,                           ##
+  model_id = "rf_covType2",       ## 
+  ntrees = 500,                   ##
+  max_depth = 30,                 ## Increase depth, from 20
   stopping_rounds = 2, 
-  mtries = 15,                  ##
-  stopping_tolerance = 1e-2,    ##
+  mtries = 15,                    ##
+  stopping_tolerance = 1e-2,      ##
   score_each_iteration = T)
 #    2    #################################################################################
 gbm1 <- h2o.gbm(
-  training_frame = df,        ## the H2O frame for training
-  #validation_frame = valid,      ## the H2O frame for validation (not required)
+  training_frame = df,           ## the H2O frame for training
+  #validation_frame = valid,     ## the H2O frame for validation (not required)
   x=1:32,                        ## the predictor columns, by column index
   y=35,                          ## the target index (what we are predicting)
   model_id = "gbm_1",            ## name the model in H2O
@@ -124,13 +132,13 @@ gbm1 <- h2o.gbm(
 summary(gbm1)
 #    3     ################################################################################
 gbm2 <- h2o.gbm(
-  training_frame = df2,        ##
-  #validation_frame = valid,      ##
-  x=c(3:33,35,36,50:69),                        ##
+  training_frame = df2,          ##
+  #validation_frame = valid,     ##
+  x=c(3:33,35,36,50:69),         ##
   y=34,                          ## 
   ntrees = 200,                  ## decrease the trees, mostly to allow for
                                  ##run time (from 50)
-  learn_rate = 0.05,              ## increase the learning rate (from 0.1)
+  learn_rate = 0.05,             ## increase the learning rate (from 0.1)
   max_depth = 20,                ## increase the depth (from 5)
   stopping_rounds = 2,           ## 
   stopping_tolerance = 0.01,     ##
@@ -150,25 +158,25 @@ predictors
 m1 <- h2o.deeplearning(
   model_id="dl_model_first", 
   training_frame=train, 
-  validation_frame=valid,   ## validation dataset: used for scoring and early stopping
+  validation_frame=valid,     ## validation dataset: used for scoring and early stopping
   x=predictors,
   y=response,
-  #activation="Rectifier",  ## default
-  #hidden=c(200,200),       ## default: 2 hidden layers with 200 neurons each
+  activation="Rectifier",     ## default
+  hidden=c(200,200),          ## default: 2 hidden layers with 200 neurons each
   epochs=1,
-  variable_importances=T    ## not enabled by default
+  variable_importances=T      ## not enabled by default
 )
 summary(m1)
 head(as.data.frame(h2o.varimp(m1)))
 #    5     #################################################################################
 m2 <- h2o.deeplearning(
-  #validation_frame=valid,
+  validation_frame=valid,
   model_id="dl_model_faster", 
   training_frame=df, 
   x=predictors,
   y=response,
-  hidden=c(100,120,100),                  ## small network, runs faster
-  epochs=100000,                      ## hopefully converges earlier...
+  hidden=c(100,120,100),               ## small network, runs faster
+  epochs=100000,                       ## hopefully converges earlier...
   score_validation_samples=10000,      ## sample the validation dataset (faster)
   stopping_rounds=2,
   stopping_metric="misclassification", ## could be "MSE","logloss","r2"
@@ -238,13 +246,14 @@ grid@summary_table[1,]
 best_model <- h2o.getModel(grid@model_ids[[1]]) ## model with lowest logloss
 best_model
 ##################################################################################
+# Generalised logistic regression  ------------
 x = c(2:33,37,38:45)
 y = 36
 m1 = h2o.glm(training_frame = df2,x = x,y = y,family='multinomial',solver='L_BFGS')
 m2 = h2o.glm(training_frame = df1,x = x, y = y,family='multinomial',solver='L_BFGS',lambda=1e-2)
 ##
 
-#####################################################################################################
+#####################################################################################
 df
 pc <- princomp(model.matrix(~.+0, data=df))
 plot(pc)
