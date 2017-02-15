@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>GE Hackathon</title>
+	<meta charset="utf-8"/>
+	<link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+<center>
+	<h2>GE Health Hack</h2>
+	<span><h3>Name : </h3><input type="text" name="name" id="name" ></span><br>
+	<div id="checkup_div">
+		<span><h3>No of Checkups : </h3><input type="text" name="name" id="checkups" ></span><br>
+		<button class="btn btn-success" id='submit_checkup'>Submit</button>
+	</div>
+	<div id='count'></div>
+	<form id="myForm">
+	</form> 
+	<div id="result_predicted">
+		<h3>Our Predicted Result is</h3><h3 id="pr"></h3><h3>The probability of occurance is</h3><h3 id="pr_prob"></h3>
+		<select id="ar"></select>
+		<button class="btn btn-success" id='r_submit'>Submit Result</button>
+	</div>
+	<div>
+	<button id='submit' class="btn btn-success">Submit</button>
+	<button id='train' class="btn btn-danger">Train</button>
+	</div>
+	<div id="Level_indicator"><input type="text" value="1" name="name" id="Level"><input type="text" name="name" value="1" id="Node"></div>
+	<div id="org_Level_indicator"><input type="text" value="1" name="name" id="org_Level"><input type="text" name="name" value="1" id="org_Node"></div>
+	<div id="final_result">
+		<div id="form_final">
+		<!-- <input type="radio" value="Yes" name="final_answer" checked> Yes<br>
+		<input type="radio"  value="No" name="final_answer"> No<br> -->
+		<h2>Please rate us on a scale of 1-5</h2>
+		<h3>Our Predicted Result is</h3><h3 id="pr_final"></h3>
+		<select id="final_select">
+			<option value='0'>0</option>
+			<option value='1'>1</option>
+		</select>
+		<button class="btn btn-success" id='submit_final'>Submit your review</button>
+		</div>
+	</div>
+</div>
+</center>
+<script type="text/javascript" src="jquery-3.1.1.min.js"></script>
+<script type="text/javascript" src="main.js"></script>
+</body>
+</html>

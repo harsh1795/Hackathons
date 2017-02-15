@@ -1,0 +1,33 @@
+Level,Node,Feature,type,ds
+1,0,Age,1,0
+1,0,BP,1,1
+1,0,Morning Sickness,0,0
+1,0,Breast discomfort,0,0
+1,0,Sugar,1,1
+1,0,UTI Burning maturation,0,0
+2,1,Drug,1,0
+2,1,Weight gain,1,0
+2,1,H/0 Fever,0,0
+2,1,edema,0,1
+2,1,Quickening ,0,1
+2,2,Drugs,0,0
+2,2,Weight gain /Week,1,0
+2,2,Abdominal pain,0,1
+2,2,Ultra Sound,0,0
+2,3,Blood group,1,0
+2,3,hyper Tension,0,0
+2,3,Bleeding,0,1
+2,3,Bleeding Times,1,1
+2,4,Sudden in Weight,0,0
+2,4,Thyroid swelling,0,0
+2,4,JVP,1,1
+2,4,TPR,1,1
+3,1,UTI last stage,0,0
+3,1,Backache,0,0
+3,1,Labour pain,0,1
+3,2,Blurring,0,0
+3,2,Contraseption used,0,0
+3,2,Fetal moments,0,1
+3,3,dio-femoral delay,1,0
+3,3,any deficit,0,0
+3,3,Respiratory Rate ,1,1
