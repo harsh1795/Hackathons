@@ -1,6 +1,6 @@
-**Overall Rank - 1st all over India among 3000 teams from top IITs,NITs
+**Overall Rank - 1st all over India among 3000 teams from top IITs,NITs**
 
-Desciption**
+**Desciption**
   - Task : Predict the churners in Telecom Industry
   - Used NLP for creating features from costumer's call history
   - Programming Language - R, Excel
