@@ -1,4 +1,4 @@
-**Leaderboard Rank - 26 among 1200 teams from all IITs**
+**Leaderboard Rank - 24 among 1200 teams from all IITs**
 
 **Description**
  - Task : Predict votes for Presidential elections for 5 candidates based on their demographic features, fundings to the individuals,their past vote,attendance in the rallies for candidates.
