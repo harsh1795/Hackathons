@@ -1,6 +1,10 @@
-##
+## Author: Harshit Saxena
+#
+#-------------------------------------------------------------------------------------------
 ## set working directory
 setwd("C:/Users/Harshit/Desktop/Analytics Competitions/AMEX")
+
+#-------------------------------------------------------------------------------------------
 ## loading dataset
 df = read.csv("trainh.csv")
 View(df)
@@ -12,9 +16,6 @@ val[,nn] = NULL
 write.csv(val,"validrefresh.csv")
 write.csv(df,"trainrefresh.csv")
 
-
-
-############################################################################################
 df = read.csv("T.csv")
 val = read.csv("V.csv")
 df$X = NULL
@@ -35,8 +36,7 @@ write.csv(val2,"validnotequalcitlast.csv")
 td = read.csv("lead56.csv")
 td$t=0
 unique(td$Centaur==td$Centaur.1)
-#breakVector[,1] <- factor(breakVector[,1], levels=levels(FinalTable[,1))
-#########################################################################################
+
 train = read.csv("Train2.csv")
 final = read.csv("final2.csv")
 train$ind = train$lev_pref1 - train$lev_pref2
@@ -49,7 +49,6 @@ hist(train$lev_pref1, col=rgb(1,0,0,0.5) ,main="Lev_pref1 vs Lev_pref2")
 hist(train$lev_pref2, col=rgb(0,0,1,0.5), add=T)
 box()
 
-
 train1 = train[train$ind>3.75,]
 train2 = train[train$ind<=3.75,]
 
@@ -60,16 +59,10 @@ write.csv(train2,"tra2.csv")
 write.csv(valid1,"vali1.csv")
 write.csv(valid2,"vali2.csv")
 
-
-
 train1$ind1 = as.logical(train1$lev_pref1>10)
-
 valid1$ind1 = as.logical(valid1$lev_pref1>10)
-
 train2$ind1 = as.logical(train2$lev_pref1>10)
-
 valid2$ind1 = as.logical(valid2$lev_pref1>10)
-
 
 df3 = subset(train2,train2$ind1==TRUE)
 df4 = subset(train2,train2$ind1==FALSE)
@@ -91,7 +84,7 @@ write.csv(df2,"train2levpref1-10-6.5.csv")
 write.csv(val1,"valid1levpref1-10-6.5.csv")
 write.csv(val2,"valid2levpref1-10-6.5.csv")
 
-##########################################################################################
+#-------------------------------------------------------------------------------------------------
 x = 6
 y = seq(4, 8, by = 1)
 z = 0.1
@@ -147,7 +140,9 @@ for (i in x){
   }
 }
 
-##################################################################################################
+#----------------------------------------------------------------------------------------------------
+# Outlier detection
+
 train = read.csv("T.csv")
 valid = read.csv("V.csv")
 train$ind = train$lev_pref1 - train$lev_pref2
@@ -188,29 +183,6 @@ outlierKD <- function(dt, var) {
 outlierKD(train,lev_pref1)
 
 z <- train[train$lev_pref1 < (quantile(train$lev_pref1, .25) - 1.5*IQR(train$lev_pref1)) & train$lev_pref1 > (quantile(train$lev_pref1, .75) + 1.5*IQR(train$lev_pref1)),]
-
-
 quantile(train$lev_pref1, .25)
-
-
 1.5*IQR(train$lev_pref1)
 quantile(train$lev_pref1, .75)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
