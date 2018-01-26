@@ -14,12 +14,12 @@ h2o.removeAll()
 # Importing Files
 df1 <- h2o.importFile(path = "tra1.csv")
 df2 <- h2o.importFile(path = "tra2.csv")
-#df3 <- h2o.importFile(path = "trainsplit1.csv")
-#df4 <- h2o.importFile(path = "train22.csv")
+df3 <- h2o.importFile(path = "trainsplit1.csv")
+df4 <- h2o.importFile(path = "train22.csv")
 lead1 = h2o.importFile(path = "vali1.csv")
 lead2 = h2o.importFile(path = "vali2.csv")
-#lead3 = h2o.importFile(path = "validsplit1.csv")
-#lead4 = h2o.importFile(path = "test22.csv")
+lead3 = h2o.importFile(path = "validsplit1.csv")
+lead4 = h2o.importFile(path = "test22.csv")
 
 #-----------------------------------------------------------------------------------------
 # Data Preprocessing
@@ -50,52 +50,22 @@ df2$ind = df2$lev_pref1-df2$lev_pref2
 lead1$ind = lead1$lev_pref1 - lead1$lev_pref2
 lead2$ind = lead2$lev_pref1 - lead2$lev_pref2
 
-
 View(df1)
-###############################################################################
-new_features_test= c('Cit_pref1','Cit_pref2','city_change','ZIP_pref1','ZIP_pref2','mvar34','mvar35','mvar29','lev_pref1','lev_pref2','ZIP_lev_pref1','ZIP_lev_pref2','mvar27','mvar28','mvar31')
+
+new_features_test= c('Cit_pref1','Cit_pref2','city_change','ZIP_pref1',
+                     'ZIP_pref2','mvar34','mvar35','mvar29','lev_pref1',
+                     'lev_pref2','ZIP_lev_pref1','ZIP_lev_pref2','mvar27',
+                     'mvar28','mvar31')
 gg = df[,new_features_test]
 
-###############################################################################
-# splitting training,testing,validation datasets.
-
-splits <- h2o.splitFrame(
-  df2,           ##  splitting the H2O frame we read above
-  c(0.8),   ##  create splits of 60% and 20%; 
-  ##  H2O will create one more split of 1-(sum of these parameters)
-  ##  so we will get 0.6 / 0.2 / 1 - (0.6+0.2) = 0.6/0.2/0.2
-  seed=1234) 
+## splitting training,testing,validation datasets.
+splits <- h2o.splitFrame(df2, c(0.8), seed=1234) 
 train <- h2o.assign(splits[[1]], "train.hex") 
-valid <- h2o.assign(splits[[2]], "valid.hex")   ## R valid, H2O valid.hex
+valid <- h2o.assign(splits[[2]], "valid.hex")
 test <- h2o.assign(splits[[2]], "test.hex")
 
-
-
 #------------------------------------------------------------------------------------------------------------
-# Getting predictions
-finalRf_predictions<-h2o.predict(
-  object = m1
-  ,newdata = lead2)
-y = as.data.frame(finalRf_predictions$predict)
-write.csv(x,"lead11.csv")
-mean(finalRf_predictions$predict==test$actual_vote) ##------------ test set accuracy
-
-dat1 = h2o.cbind(lead1$citizen_id,finalRf_predictions$predict)  ##------combining datasets with predictions
-dat2 = h2o.cbind(lead2$citizen_id,finalRf_predictions$predict)
-dat3 = h2o.cbind(lead3$citizen_id,finalRf_predictions$predict)
-dat4 = h2o.cbind(lead4$citizen_id,finalRf_predictions$predict)
-
-dat = h2o.rbind(dat1,dat2)
-dat = h2o.rbind(dat,dat3)
-dat = h2o.rbind(dat,dat4)
-
-dat = as.data.frame(dat)
-write.csv(dat,"fina.csv")  ##---------Exporting result into csv format
-
-dat2 = h2o.cbind(dat2,lead2$party_voted_past)
-data2 = as.data.frame(dat2)
-View(data2)
-length(which(data2$predict==data2$Cit_pref1))
+# Data Modelling
 #    1     #####################################################################################
 rf1 <- h2o.randomForest(          ## h2o.randomForest function
   training_frame = df2,           ## the H2O frame for training
@@ -108,6 +78,7 @@ rf1 <- h2o.randomForest(          ## h2o.randomForest function
   nbins = 100,                    ## use a maximum of 200 trees to create the
   #stopping_rounds = 3,           ## Stop fitting new trees when the 2-tree
   score_each_iteration = T)
+
 #    2    #################################################################################
 rf2 <- h2o.randomForest(          ##
   training_frame = train,         ##
@@ -121,7 +92,8 @@ rf2 <- h2o.randomForest(          ##
   mtries = 15,                    ##
   stopping_tolerance = 1e-2,      ##
   score_each_iteration = T)
-#    2    #################################################################################
+
+#    3    #################################################################################
 gbm1 <- h2o.gbm(
   training_frame = df,           ## the H2O frame for training
   #validation_frame = valid,     ## the H2O frame for validation (not required)
@@ -130,21 +102,22 @@ gbm1 <- h2o.gbm(
   model_id = "gbm_1",            ## name the model in H2O
   seed = 2000000) 
 summary(gbm1)
-#    3     ################################################################################
+
+#    4     ################################################################################
 gbm2 <- h2o.gbm(
   training_frame = df2,          ##
   #validation_frame = valid,     ##
   x=c(3:33,35,36,50:69),         ##
   y=34,                          ## 
   ntrees = 200,                  ## decrease the trees, mostly to allow for
-                                 ##run time (from 50)
   learn_rate = 0.05,             ## increase the learning rate (from 0.1)
   max_depth = 20,                ## increase the depth (from 5)
   stopping_rounds = 2,           ## 
   stopping_tolerance = 0.01,     ##
   score_each_iteration = T,      ##
   model_id = "gbm_2")
-#    4    ############################################################################
+
+#    5    ############################################################################
 ## deep learning
 response <- "actual_vote"
 n = c("mvar1","mvar2","mvar3","mvar4","mvar5","mvar6","mvar7","mvar8","mvar9",
@@ -168,7 +141,8 @@ m1 <- h2o.deeplearning(
 )
 summary(m1)
 head(as.data.frame(h2o.varimp(m1)))
-#    5     #################################################################################
+
+#    6     #################################################################################
 m2 <- h2o.deeplearning(
   validation_frame=valid,
   model_id="dl_model_faster", 
@@ -184,7 +158,8 @@ m2 <- h2o.deeplearning(
 )
 summary(m2)
 plot(m2)
-#    6    #################################################################################
+
+#    7    #################################################################################
 m3 <- h2o.deeplearning(
   model_id="dl_model_tuned", 
   training_frame=train, 
@@ -208,9 +183,8 @@ m3 <- h2o.deeplearning(
 ) 
 summary(m3)
 plot(m3)
-#    7    #################################################################################
 
-#    8    ############################################################################
+#    8    #################################################################################
 hyper_params <- list(
   activation=c("Rectifier","Tanh","Maxout","RectifierWithDropout","TanhWithDropout","MaxoutWithDropout"),
   hidden=list(c(50,20,20),c(50,50,100)),
@@ -245,16 +219,43 @@ grid
 grid@summary_table[1,]
 best_model <- h2o.getModel(grid@model_ids[[1]]) ## model with lowest logloss
 best_model
-##################################################################################
-# Generalised logistic regression  ------------
+
+#     9     #################################################################################
+# Generalised logistic regression  
 x = c(2:33,37,38:45)
 y = 36
 m1 = h2o.glm(training_frame = df2,x = x,y = y,family='multinomial',solver='L_BFGS')
 m2 = h2o.glm(training_frame = df1,x = x, y = y,family='multinomial',solver='L_BFGS',lambda=1e-2)
-##
 
-#####################################################################################
+#     10    #################################################################################
+# Principal Component analysis
 df
 pc <- princomp(model.matrix(~.+0, data=df))
 plot(pc)
+
+#------------------------------------------------------------------------------------------------------------
+# Getting predictions
+finalRf_predictions<-h2o.predict(
+  object = m1
+  ,newdata = lead2)
+y = as.data.frame(finalRf_predictions$predict)
+write.csv(x,"lead11.csv")
+mean(finalRf_predictions$predict==test$actual_vote) ##------------ test set accuracy
+
+dat1 = h2o.cbind(lead1$citizen_id,finalRf_predictions$predict)  ##------combining datasets with predictions
+dat2 = h2o.cbind(lead2$citizen_id,finalRf_predictions$predict)
+dat3 = h2o.cbind(lead3$citizen_id,finalRf_predictions$predict)
+dat4 = h2o.cbind(lead4$citizen_id,finalRf_predictions$predict)
+
+dat = h2o.rbind(dat1,dat2)
+dat = h2o.rbind(dat,dat3)
+dat = h2o.rbind(dat,dat4)
+
+dat = as.data.frame(dat)
+write.csv(dat,"fina.csv")  ##---------Exporting result into csv format
+
+dat2 = h2o.cbind(dat2,lead2$party_voted_past)
+data2 = as.data.frame(dat2)
+View(data2)
+length(which(data2$predict==data2$Cit_pref1))
 
