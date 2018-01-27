@@ -1,25 +1,29 @@
+'''
+------------------------------------
+|Author: Harshit Saxena(BlackViper)|
+------------------------------------
+'''
+# Setting ditectory
 setwd("C:/Users/Harshit/Desktop/Analytics Competitions/AV/BigMart")
-
+#-----------------------------------------------------------------------------------------------------
+# Loading libraries
+library(h2o)
+h2o.init(nthreads=-1, max_mem_size = "4G")
+h2o.removeAll()
+#-----------------------------------------------------------------------------------------------------
+# Loading Data
 df = read.csv("Train.csv")
 test_df = read.csv("Test.csv")
-
-library(h2o)
-## starting cluster
-h2o.init(
-  nthreads=-1,            ## -1: use all available threads
-  max_mem_size = "4G")
-h2o.removeAll()
 new_df <- h2o.importFile(path = "Train.csv")
 test_df <- h2o.importFile(path = "Test.csv")
 View(new_df)
 View(test_df)
 nn = as.data.frame(new_df)
 nn1 = as.data.frame(test_df)
-######################################################################################
-# new_df$Item_Weight has 1463 missing values.
+#-----------------------------------------------------------------------------------------------------
+# Data Preprocessing
 nn$Outlet_Size[is.na(nn$Outlet_Size) ==1] = 'Small'
 nn1$Outlet_Size[is.na(nn1$Outlet_Size) ==1] = 'Small'
-
 pred_weight = tapply(nn$Item_Weight, nn$Item_Type, mean,na.rm = T)
 pred_weight1 = tapply(nn1$Item_Weight, nn1$Item_Type, mean,na.rm = T)
 u = as.data.frame.array(pred_weight)
@@ -80,44 +84,24 @@ for (i in 1:nrow(nn)){
   nn$Mean_Item_Sales[i] = l
 }
 
-#df_1 = nn[nn$Outlet_Type == "Supermarket Type1",]
-#test_df_1 = nn1[nn1$Outlet_Type == "Supermarket Type1",]
-#df_2 = nn[nn$Outlet_Type == "Supermarket Type2",]
-#test_df_2 = nn1[nn1$Outlet_Type == "Supermarket Type2",]
-#df_3 = nn[nn$Outlet_Type == "Supermarket Type3",]
-#test_df_3 = nn1[nn1$Outlet_Type == "Supermarket Type3",]
-#df_4 = nn[nn$Outlet_Type == "Grocery Store",]
-#test_df_4 = nn1[nn1$Outlet_Type == "Grocery Store",]
-
 summary(nn[nn$sales_cat == 1,])
-#new_df_1 = as.h2o(df_1)
-#test_df_1 = as.h2o(test_df_1)
-#new_df_2 = as.h2o(df_2)
-#test_df_2 = as.h2o(test_df_2)
-#new_df_3 = as.h2o(df_3)
-#test_df_3 = as.h2o(test_df_3)
-#new_df_4 = as.h2o(df_4)
-#test_df_4 = as.h2o(test_df_4)
-######################################################################################
-
-
-
+#---------------------------------------------------------------------------------------------------
+# Data Modelling
 rf1 <- h2o.randomForest(         ## h2o.randomForest function
-  training_frame = new_df,        ## the H2O frame for training
-  #validation_frame = valid,      ## the H2O frame for validation (not required)
-  x=c(1:11,13,14,15,16),                        ## the predictor columns, by column index
-  y=12,                          ## the target index (what we are predicting)
-  model_id = "rf_v1",            ## name the model in H2O
+  training_frame = new_df,       
+  #validation_frame = valid,      
+  x=c(1:11,13,14,15,16),                      
+  y=12,                      
+  model_id = "rf_v1",          
   ntrees = 1500,
   mtries = 2,
-  nbins = 1000,                    ## use a maximum of 200 trees to create the
-  #stopping_rounds = 3,           ## Stop fitting new trees when the 2-tree
+  nbins = 1000,
+  #stopping_rounds = 3,          
   score_each_iteration = T)
 h2o.varimp_plot(rf1)
 
-
-#######################################################################################
-
+#----------------------------------------------------------------------------------------------------
+# Data Prediction & Submission
 finalRf_predictions<-h2o.predict(
   object = rf1
   ,newdata = test_df)
