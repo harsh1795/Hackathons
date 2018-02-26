@@ -3,25 +3,33 @@
 |Author: Harshit Saxena(BlackViper)|
 ------------------------------------
 '''
+
+#---------------------------------------------------------------------------------------------------------#
 # Setting ditectory
 setwd("C:/Users/Harshit/Desktop/Analytics Competitions/AV/BigMart")
-#-----------------------------------------------------------------------------------------------------
+
 # Loading libraries
 library(h2o)
 h2o.init(nthreads=-1, max_mem_size = "4G")
 h2o.removeAll()
-#-----------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------#
 # Loading Data
 df = read.csv("Train.csv")
 test_df = read.csv("Test.csv")
+
 new_df <- h2o.importFile(path = "Train.csv")
 test_df <- h2o.importFile(path = "Test.csv")
+
+
 View(new_df)
 View(test_df)
+
 nn = as.data.frame(new_df)
 nn1 = as.data.frame(test_df)
-#-----------------------------------------------------------------------------------------------------
+
+#---------------------------------------------------------------------------------------------------------#
 # Data Preprocessing
+
 nn$Outlet_Size[is.na(nn$Outlet_Size) ==1] = 'Small'
 nn1$Outlet_Size[is.na(nn1$Outlet_Size) ==1] = 'Small'
 pred_weight = tapply(nn$Item_Weight, nn$Item_Type, mean,na.rm = T)
@@ -85,9 +93,9 @@ for (i in 1:nrow(nn)){
 }
 
 summary(nn[nn$sales_cat == 1,])
-#---------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------#
 # Data Modelling
-rf1 <- h2o.randomForest(         ## h2o.randomForest function
+rf1 <- h2o.randomForest(        
   training_frame = new_df,       
   #validation_frame = valid,      
   x=c(1:11,13,14,15,16),                      
@@ -100,7 +108,7 @@ rf1 <- h2o.randomForest(         ## h2o.randomForest function
   score_each_iteration = T)
 h2o.varimp_plot(rf1)
 
-#----------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------#
 # Data Prediction & Submission
 finalRf_predictions<-h2o.predict(
   object = rf1
@@ -109,3 +117,6 @@ finalRf_predictions<-h2o.predict(
 dat = h2o.cbind(test_df$Item_Identifier,test_df$Outlet_Identifier,finalRf_predictions$predict)
 dat = as.data.frame(dat)
 write.csv(dat,"final19.csv")
+
+#---------------------------------------------------------------------------------------------------------#
+
