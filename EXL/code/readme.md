@@ -7,4 +7,4 @@
  - Implementing different models like - **Random Forest**, **GBM**, **XgBoost**
  
  ***Final_Modelling_Code.R*** : 
- - final code for competition with Random Forest and GBM.
+ - final code for competition with Random Forest
