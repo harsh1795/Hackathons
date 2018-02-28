@@ -1,6 +1,17 @@
-#author = Black_Viper
+
+
+###############################################
+##   Author : Harshit Saxena (Black_Viper)   ##
+##      (https://github.com/harsh1795)       ##
+###############################################
+
+
+#-----------------------------------------------------------------------------------------------------------------#
+# Importing Libraries and Data
+
+## Setting working directory
 setwd("C:/Users/212630200/Desktop/New folder/Hackathon/AV_Fractal/")
-###  Importing Libraries
+## Importing Libraries
 library(xts)
 library(forecast)
 library(lubridate)
@@ -8,31 +19,18 @@ library(ggplot2)
 library(tseries)
 library(plyr)
 library(data.table)
+library(smooth)
+library(Mcomp)
+
 ### Loading Data
-
-losss <- function(error){
-  loss =  sqrt(mean(error^2))
-  return(loss)
-}
-
-
 dat = read.csv("train.csv", stringsAsFactors = FALSE)
+
+#------------------------------------------------------------------------------------------------------------------#
+# Data Preprocessing
 
 dat$Datetime = as.Date(dat$Datetime)
 dat$Category_3 = as.factor(dat$Category_3)
 dat$Category_2 = as.factor(dat$Category_2)
-
-plot_1 = ggplot(dat, aes(Datetime, Price)) + geom_line() + scale_x_date('month')  + ylab("Daily Price") +
-  xlab("")
-qplot(count_ItemID$freq,geom = "histogram",binwidth = 0.5)
-plot_2 = ggplot() + geom_line(aes(y = freq, x = Item_ID), data = count_ItemID, stat = "identity")
-
-## got amazing plot for each Item ID
-dat_29655 = dat[dat$Item_ID==29655,]
-ggplot(dat_29654, aes(Datetime, Number_Of_Sales)) + geom_line() + scale_x_date('month')  + ylab("Daily Number of sales") +
-  xlab("")
-ggplot(dat_29654, aes(Datetime, Price)) + geom_line() + scale_x_date('month')  + ylab("Daily Price") +
-  xlab("")
 
 ##making subsets with itemID
 train_30375 = dat_30375[1:(0.7*nrow(dat_30375)),]
@@ -40,11 +38,38 @@ test_30375 = dat_30375[(nrow(train_30375)+1):nrow(dat_30375),]
 price_ts = ts(dat_30375[, c('Price')])
 dat_30375$clean_price = tsclean(price_ts)
 
-ggplot(dat_30375, aes(Datetime, clean_price)) + geom_line() + scale_x_date('month')  + ylab("Daily Price") +
-  xlab("")
+dat_29655 = dat[dat$Item_ID==29655,]
 
 dat_30375$price_ma7 = ma(dat_30375$clean_price, order=7)
 dat_30375$price_ma30 = ma(dat_30375$clean_price, order=30)
+
+#------------------------------------------------------------------------------------------------------------------#
+# Defining Loss Function 
+
+losss <- function(error){
+  loss =  sqrt(mean(error^2))
+  return(loss)
+}
+
+#------------------------------------------------------------------------------------------------------------------#
+# Data Visualization
+
+plot_1 = ggplot(dat, aes(Datetime, Price)) + geom_line() + scale_x_date('month')  + ylab("Daily Price") +
+  xlab("")
+
+qplot(count_ItemID$freq,geom = "histogram",binwidth = 0.5)
+
+plot_2 = ggplot() + geom_line(aes(y = freq, x = Item_ID), data = count_ItemID, stat = "identity")
+
+## got amazing plot for each Item ID
+ggplot(dat_29654, aes(Datetime, Number_Of_Sales)) + geom_line() + scale_x_date('month')  + ylab("Daily Number of sales") +
+  xlab("")
+
+ggplot(dat_29654, aes(Datetime, Price)) + geom_line() + scale_x_date('month')  + ylab("Daily Price") +
+  xlab("")
+
+ggplot(dat_30375, aes(Datetime, clean_price)) + geom_line() + scale_x_date('month')  + ylab("Daily Price") +
+  xlab("")
 
 ggplot() +
   geom_line(data = dat_30375, aes(x = Datetime, y = clean_price, colour = "Price")) +
@@ -52,23 +77,29 @@ ggplot() +
   geom_line(data = dat_30375, aes(x = Datetime, y = price_ma30, colour = "Monthly Moving Average"))  +
   ylab('Price')
 
+#---------------------------------------------------------------------------------------------------------------------#
+# Time Series Forecasting
 
 price_ma = ts(na.omit(dat_30375$price_ma7), frequency=30)
 decomp = stl(price_ma, s.window="periodic")
 deseasonal_cnt <- seasadj(decomp)
 plot(decomp)
 
+## Plotting ACF & PACF plots
 adf.test(price_ma, alternative = "stationary")
 Acf(price_ma, main='')
 Pacf(price_ma, main='')
 
+## Checking stationary in series by differencing
 count_d1 = diff(deseasonal_cnt, differences = 1)
 plot(count_d1)
 adf.test(count_d1, alternative = "stationary")
 
+## plotting ACF & PACF Plots
 Acf(count_d1, main='ACF for Differenced Series')
 Pacf(count_d1, main='PACF for Differenced Series')
 
+## fitting ARIMA
 auto.arima(deseasonal_cnt, seasonal=FALSE)
 
 fit<-auto.arima(deseasonal_cnt, seasonal=FALSE)
@@ -78,9 +109,9 @@ fit2 = arima(deseasonal_cnt, order=c(2,1,7))
 fit2
 tsdisplay(residuals(fit2), lag.max=15, main='Seasonal Model Residuals')
 
+## prediction
 fcast <- forecast(fit2, h=240)
 plot(fcast)
-
 
 
 hold <- window(ts(deseasonal_cnt), start=637)
@@ -100,5 +131,4 @@ jj = as.vector(dat_30375$Price[638:911])
 error = y-jj
 rmse = losss(error)
 
-library(smooth)
-library(Mcomp)
+#---------------------------------------------------------------------------------------------------------------------#
