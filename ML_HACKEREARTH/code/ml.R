@@ -1,57 +1,30 @@
+#######################################
+#    Author : Harshit Saxena          #
+#   (https://github.com/harsh1795)    #
+#######################################
+
+#-------------------------------------------------------------------------------------------------------------------------#
+# Setting Working Directory
 setwd('C:/Users/Harshit/Desktop/Analytics Competitions/ML_HACKEREARTH')
-#
-#
-library(h2o)
-## starting cluster
-h2o.init(nthreads = -1,max_mem_size = '4G')
+
+#-------------------------------------------------------------------------------------------------------------------------#
+# Importing Libraries and Data
 library(data.table)
 library(ggplot2)
-# train = fread('train_indessa.csv', stringsAsFactors = TRUE,na.strings = "")
-# test = fread('test_indessa.csv', stringsAsFactors = TRUE,na.strings = "")
-# str(train)
-# predictor_var = train$loan_status
-# train$loan_status=NULL
-# c <- list(train, test)
-# combin = rbindlist(c)
-# table(combin$term)
-# ggplot(combin, aes(int_rate, fill = term)) + geom_bar()
-# 
-# summary(combin$batch_enrolled)
-# ## dropping batch_enrolled variable
-# combin$batch_enrolled=NULL
-# n_rows = nrow(combin)
-# k1 = c(1:100)
-# frq =  function(x){
-#   b = a[a$Var1==gh$emp_title[x],]
-#   b = b$Freq
-#   return(b)
-# }
-# o1 = sapply(k1,frq)
-#######################################################################################
-# df1 <- fread('train_indessa.csv', stringsAsFactors = TRUE,na.strings = "")
-# ## doing undersampling of big data into 3 parts
-# ## by dividing negative class into 3 parts and
-# ## then running 3 models.
-# df1_positive_dataset = df1[df1$loan_status==1,]
-# df1_negative_dataset = df1[df1$loan_status==0,]
-# splitSample <- sample(1:3, size=nrow(df1_negative_dataset), prob=c(0.33,0.33,0.34),replace = TRUE)
-# df1_negative_dataset_1 <- df1_negative_dataset[splitSample==1,]  
-# df1_negative_dataset_2 <- df1_negative_dataset[splitSample==2,] 
-# df1_negative_dataset_3 <- df1_negative_dataset[splitSample==3,] 
-# ## forming 3 train datasets.
-# train_1 = rbind(df1_negative_dataset_1,df1_positive_dataset)
-# train_2 = rbind(df1_negative_dataset_2,df1_positive_dataset)
-# train_3 = rbind(df1_negative_dataset_3,df1_positive_dataset)
-# ## saving these datasets.
-# ## write.csv(train_1,'train_1.csv')
-# ## write.csv(train_2,'train_2.csv')
-# ## write.csv(train_3,'train_3.csv')
-#######################################################################################
-## reading first data.
-# train_1 = fread('train_1.csv', stringsAsFactors = TRUE,na.strings = "NA")
-# summary(train_1)
 library(readr)
 library(DescTools)
+library(tm)
+library(RColorBrewer)
+library(wordcloud)
+
+library(h2o)
+h2o.init(nthreads = -1,max_mem_size = '4G')
+
+# Importing data
+train = fread('train_indessa.csv', stringsAsFactors = TRUE,na.strings = "")
+test = fread('test_indessa.csv', stringsAsFactors = TRUE,na.strings = "")
+df1 <- fread('train_indessa.csv', stringsAsFactors = TRUE,na.strings = "")
+train_1 = fread('train_1.csv', stringsAsFactors = TRUE,na.strings = "NA")
 train_1 <- read_csv("C:/Users/Harshit/Desktop/Analytics Competitions/ML_HACKEREARTH/train_indessa.csv",
                     col_types = cols(grade = col_factor(levels = c("A","B", "C", "D", "E", "F", 
                     "G")), loan_status = col_factor(levels = c("0", "1")),
@@ -60,6 +33,51 @@ test = read_csv("C:/Users/Harshit/Desktop/Analytics Competitions/ML_HACKEREARTH/
                 col_types = cols(grade = col_factor(levels = c("A","B", "C", "D", "E", "F", 
                       "G")), loan_status = col_factor(levels = c("0", "1")),
                       term = col_factor(levels = c("36 months","60 months"))))
+
+#-------------------------------------------------------------------------------------------------------------------------#
+# Data Preprocessing
+
+str(train)
+predictor_var = train$loan_status
+train$loan_status=NULL
+c <- list(train, test)
+combin = rbindlist(c)
+table(combin$term)
+ggplot(combin, aes(int_rate, fill = term)) + geom_bar()
+summary(combin$batch_enrolled)
+
+## dropping batch_enrolled variable
+combin$batch_enrolled=NULL
+n_rows = nrow(combin)
+k1 = c(1:100)
+frq =  function(x){
+  b = a[a$Var1==gh$emp_title[x],]
+  b = b$Freq
+  return(b)
+}
+
+o1 = sapply(k1,frq)
+
+## doing undersampling of big data into 3 parts
+## by dividing negative class into 3 parts and
+## then running 3 models.
+
+df1_positive_dataset = df1[df1$loan_status==1,]
+df1_negative_dataset = df1[df1$loan_status==0,]
+splitSample <- sample(1:3, size=nrow(df1_negative_dataset), prob=c(0.33,0.33,0.34),replace = TRUE)
+df1_negative_dataset_1 <- df1_negative_dataset[splitSample==1,]  
+df1_negative_dataset_2 <- df1_negative_dataset[splitSample==2,] 
+df1_negative_dataset_3 <- df1_negative_dataset[splitSample==3,] 
+## forming 3 train datasets.
+train_1 = rbind(df1_negative_dataset_1,df1_positive_dataset)
+train_2 = rbind(df1_negative_dataset_2,df1_positive_dataset)
+train_3 = rbind(df1_negative_dataset_3,df1_positive_dataset)
+## saving these datasets.
+write.csv(train_1,'train_1.csv')
+write.csv(train_2,'train_2.csv')
+write.csv(train_3,'train_3.csv')
+
+# summary(train_1)
 
 
 train_1$batch_enrolled=NULL
@@ -114,6 +132,7 @@ ajk = as.data.frame(ajk)
 test$last_week_pay = ajk$V1
 test$last_week_pay = as.character(test$last_week_pay)
 test$last_week_pay = as.numeric(test$last_week_pay)
+
 ## Missing values....
 train_1[,10][is.na(train_1[,10])==TRUE] = 0
 train_1$loanfund = train_1$loan_amnt==train_1$funded_amnt
@@ -171,12 +190,7 @@ test[,39][is.na(test$total_rev_hi_lim)==T] = mean(test$total_rev_hi_lim,na.rm = 
 test$verification_status_joint=NULL
 test$verification_status = as.factor(test$verification_status)
 
-
-
-library(tm)
-library(RColorBrewer)
-library(wordcloud)
-
+## Wordcloud
 loan_descriptions.corpus <- Corpus(DataframeSource(data.frame(head(train_1[,9], n=nrow(train_1)))))
 loan_descriptions.corpus <- tm_map(loan_descriptions.corpus, removePunctuation)
 loan_descriptions.corpus <- tm_map(loan_descriptions.corpus, content_transformer(tolower))
@@ -240,24 +254,24 @@ df1$desc = NULL
 df2$emp_title = NULL
 df2$title = NULL
 df2$desc = NULL
-#df1$member_id = NULL
-#df2$member_id = NULL
 
+#-------------------------------------------------------------------------------------------------------------------------#
+# Data Modelling
 
-
-rf1 <- h2o.randomForest(         ## h2o.randomForest function
-  training_frame = train,          ## the H2O frame for training
-  #validation_frame = valid,     ## the H2O frame for validation (not required)
-  x=c(2:35,37:49),                     ## the predictor columns, by column index
-  y=36,                          ## the target index (what we are predicting)
-  model_id = "rf_v1",            ## name the model in H2O
+# Random Forest
+rf1 <- h2o.randomForest(         
+  training_frame = train,        
+  x=c(2:35,37:49),               
+  y=36,                          
+  model_id = "rf_v1",            
   ntrees = 100,
   mtries = 7,
-  #nbins = 100,                   ## use a maximum of 200 trees to create the
-  #stopping_rounds = 3,
-  balance_classes = TRUE,         ## Stop fitting new trees when the 2-tree
+  nbins = 100,                  
+  stopping_rounds = 3,
+  balance_classes = TRUE,        
   score_each_iteration = T)
 
+## predictions
 finalRf_predictions<-h2o.predict(
   object = m1
   ,newdata = df2)
@@ -289,12 +303,14 @@ m1 <- h2o.deeplearning(
   variable_importances=T    ## not enabled by default
 )
 
+## predictions
 finalRf_predictions<-h2o.predict(object = gbm2,newdata = df2)
 y = as.data.frame(finalRf_predictions$p1)
 test$predict = y$p1
 final = test[,c(1,52)]
 write.csv(final,"submit_gb.csv")
-#####################################################################################
+
+## GBM
 splits <- h2o.splitFrame(df1,c(0.8,0.0),seed=1234)
 train <- h2o.assign(splits[[1]], "train.hex")
 valid <- h2o.assign(splits[[2]], "valid.hex")
@@ -324,57 +340,4 @@ gbm2 <- h2o.gbm(
   model_id = "gbm_covType2",  ##
   seed = 2000000) 
 
-
-
-## Depth 10 is usually plenty of depth for most datasets, but you never know
-#hyper_params = list( max_depth = seq(1,29,2) )
-hyper_params = list( max_depth = c(20,30,40,50) ) ##faster for larger datasets
-
-grid <- h2o.grid(
-  ## hyper parameters
-  hyper_params = hyper_params,
-  
-  ## full Cartesian hyper-parameter search
-  search_criteria = list(strategy = "Cartesian"),
-  
-  ## which algorithm to run
-  algorithm="gbm",
-  
-  ## identifier for the grid, to later retrieve it
-  grid_id="depth_grid",
-  
-  ## standard model parameters
-  x = d, 
-  y = y, 
-  training_frame = train, 
-  validation_frame = test2,
-  
-  ## more trees is better if the learning rate is small enough 
-  ## here, use "more than enough" trees - we have early stopping
-  ntrees = 250,                                                            
-  
-  ## smaller learning rate is better
-  ## since we have learning_rate_annealing, we can afford to start with a bigger learning rate
-  learn_rate = 0.05,                                                         
-  
-  ## learning rate annealing: learning_rate shrinks by 1% after every tree 
-  ## (use 1.00 to disable, but then lower the learning_rate)
-  learn_rate_annealing = 0.99,                                               
-  
-  ## sample 80% of rows per tree
-  sample_rate = 0.8,                                                       
-  
-  ## sample 80% of columns per split
-  col_sample_rate = 0.8, 
-  
-  ## fix a random number generator seed for reproducibility
-  seed = 1234,                                                             
-  
-  ## early stopping once the validation AUC doesn't improve by at least 0.01% for 5 consecutive scoring events
-  stopping_rounds = 5,
-  stopping_tolerance = 1e-4,
-  stopping_metric = "AUC", 
-  
-  ## score every 10 trees to make early stopping reproducible (it depends on the scoring interval)
-  score_tree_interval = 10                                                
-)
+#-------------------------------------------------------------------------------------------------------------------------#
