@@ -1,4 +1,4 @@
-# Analytics Vidhya - Lord of Machines data Science Hackathon
+## Analytics Vidhya - Lord of Machines Data Science Hackathon
 
 
  - Private Leaderboard Rank - 27
